@@ -1,2 +1,143 @@
 # YlxGhost-
 Cobrinha
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Cobrinha PRO</title>
+<style>
+body{
+  background:#0b0b0b;
+  color:#0f0;
+  font-family:Arial;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+  margin:0;
+}
+canvas{
+  background:#000;
+  border:3px solid #0f0;
+}
+.controls{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns:60px 60px 60px;
+  grid-gap:5px;
+}
+button{
+  font-size:20px;
+  padding:10px;
+  background:#111;
+  color:#0f0;
+  border:2px solid #0f0;
+}
+.info{
+  margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<h2>🐍 Cobrinha PRO</h2>
+<canvas id="game" width="300" height="300"></canvas>
+
+<div class="info">
+Pontos: <span id="score">0</span> |
+Recorde: <span id="best">0</span>
+</div>
+
+<div class="controls">
+  <div></div>
+  <button onclick="setDir('UP')">⬆️</button>
+  <div></div>
+  <button onclick="setDir('LEFT')">⬅️</button>
+  <button onclick="setDir('DOWN')">⬇️</button>
+  <button onclick="setDir('RIGHT')">➡️</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const box = 15;
+
+let snake = [{x:10*box,y:10*box}];
+let dir = "RIGHT";
+let food = randomFood();
+let score = 0;
+let speed = 140;
+
+let best = localStorage.getItem("recorde") || 0;
+document.getElementById("best").innerText = best;
+
+document.addEventListener("keydown", e=>{
+  if(e.key=="ArrowUp"&&dir!="DOWN")dir="UP";
+  if(e.key=="ArrowDown"&&dir!="UP")dir="DOWN";
+  if(e.key=="ArrowLeft"&&dir!="RIGHT")dir="LEFT";
+  if(e.key=="ArrowRight"&&dir!="LEFT")dir="RIGHT";
+});
+
+function setDir(d){
+  if(d=="UP"&&dir!="DOWN")dir="UP";
+  if(d=="DOWN"&&dir!="UP")dir="DOWN";
+  if(d=="LEFT"&&dir!="RIGHT")dir="LEFT";
+  if(d=="RIGHT"&&dir!="LEFT")dir="RIGHT";
+}
+
+function randomFood(){
+  return {
+    x:Math.floor(Math.random()*20)*box,
+    y:Math.floor(Math.random()*20)*box
+  };
+}
+
+function game(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  snake.forEach((p,i)=>{
+    ctx.fillStyle=i==0?"#0f0":"#0a0";
+    ctx.fillRect(p.x,p.y,box,box);
+  });
+
+  ctx.fillStyle="red";
+  ctx.fillRect(food.x,food.y,box,box);
+
+  let head={...snake[0]};
+  if(dir=="UP")head.y-=box;
+  if(dir=="DOWN")head.y+=box;
+  if(dir=="LEFT")head.x-=box;
+  if(dir=="RIGHT")head.x+=box;
+
+  if(head.x==food.x && head.y==food.y){
+    score++;
+    speed=Math.max(60,speed-5);
+    food=randomFood();
+    document.getElementById("score").innerText=score;
+  } else {
+    snake.pop();
+  }
+
+  if(
+    head.x<0||head.y<0||
+    head.x>=canvas.width||
+    head.y>=canvas.height||
+    snake.some(p=>p.x==head.x&&p.y==head.y)
+  ){
+    if(score>best){
+      localStorage.setItem("recorde",score);
+    }
+    alert("Game Over! Pontos: "+score);
+    location.reload();
+  }
+
+  snake.unshift(head);
+}
+
+let loop=setInterval(game,speed);
+setInterval(()=>{clearInterval(loop);loop=setInterval(game,speed)},200);
+</script>
+
+</body>
+</html>
